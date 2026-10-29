@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 
 const VALID_CATEGORIES = ["culture", "tech", "automotive"];
 
-// Tell Next.js exactly which category pages to pre-build during static generation
 export async function generateStaticParams() {
   return VALID_CATEGORIES.map((category) => ({
     category: category,
@@ -13,7 +12,7 @@ export async function generateStaticParams() {
 
 export default async function CategoryPage({ params }) {
   const resolvedParams = await params;
-  const category = resolvedParams?.category;
+  const category = resolvedParams?.category?.toLowerCase();
 
   if (!category || !VALID_CATEGORIES.includes(category)) {
     notFound();
@@ -37,48 +36,53 @@ export default async function CategoryPage({ params }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
-            <Link 
-              key={post.slug} 
-              href={`/${category.toLowerCase()}/${post.slug}`}
-              className="group bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row gap-5 items-center hover:border-red-600/50 hover:bg-neutral-900 transition shadow-lg"
-            >
-              {/* Thumbnail (Left side) */}
-              <div className="w-full sm:w-48 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800">
-                <img 
-                  src={post.featuredImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80"} 
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                />
-              </div>
+          {posts.map((post) => {
+            const postCategory = (post.category || category).toLowerCase();
+            const postSlug = post.slug.toLowerCase();
 
-              {/* Content & Metadata (Right side) */}
-              <div className="flex flex-col justify-between flex-grow w-full space-y-2">
-                <div className="flex items-center justify-between text-xs text-neutral-400">
-                  <span className="bg-red-600/10 text-red-500 font-extrabold px-2.5 py-0.5 rounded border border-red-600/20 uppercase tracking-wider">
-                    {post.category}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span>{post.date}</span>
-                    <span>•</span>
-                    <span>{post.author}</span>
+            return (
+              <Link 
+                key={postSlug} 
+                href={`/${postCategory}/${postSlug}`}
+                className="group bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row gap-5 items-center hover:border-red-600/50 hover:bg-neutral-900 transition shadow-lg"
+              >
+                {/* Thumbnail (Left side) */}
+                <div className="w-full sm:w-48 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800">
+                  <img 
+                    src={post.featuredImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80"} 
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                </div>
+
+                {/* Content & Metadata (Right side) */}
+                <div className="flex flex-col justify-between flex-grow w-full space-y-2">
+                  <div className="flex items-center justify-between text-xs text-neutral-400">
+                    <span className="bg-red-600/10 text-red-500 font-extrabold px-2.5 py-0.5 rounded border border-red-600/20 uppercase tracking-wider">
+                      {post.category}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span>{post.date}</span>
+                      <span>•</span>
+                      <span>{post.author}</span>
+                    </div>
+                  </div>
+
+                  <h2 className="text-lg md:text-xl font-bold text-white group-hover:text-red-500 transition leading-snug">
+                    {post.title}
+                  </h2>
+
+                  <p className="text-neutral-400 text-sm line-clamp-2">
+                    {post.excerpt}
+                  </p>
+
+                  <div className="pt-1 flex items-center justify-end text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
+                    Read Brief →
                   </div>
                 </div>
-
-                <h2 className="text-lg md:text-xl font-bold text-white group-hover:text-red-500 transition leading-snug">
-                  {post.title}
-                </h2>
-
-                <p className="text-neutral-400 text-sm line-clamp-2">
-                  {post.excerpt}
-                </p>
-
-                <div className="pt-1 flex items-center justify-end text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
-                  Read Brief →
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
