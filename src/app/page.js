@@ -17,8 +17,8 @@ function getAllPosts() {
           const fileContents = fs.readFileSync(filePath, 'utf8');
           const { data } = matter(fileContents);
           allPosts.push({
-            slug: filename.replace(/\.mdx$/, ''),
-            category,
+            slug: filename.replace(/\.mdx$/, '').toLowerCase(),
+            category: category.toLowerCase(),
             ...data,
           });
         }
@@ -60,7 +60,7 @@ export default function Home() {
             </div>
 
             <h1 className="text-2xl md:text-4xl font-black text-white leading-tight max-w-3xl">
-              <Link href={`/${leadPost.category}/${leadPost.slug}`} className="hover:text-red-500 transition">
+              <Link href={`/${leadPost.category.toLowerCase()}/${leadPost.slug.toLowerCase()}`} className="hover:text-red-500 transition">
                 {leadPost.title}
               </Link>
             </h1>
@@ -71,7 +71,7 @@ export default function Home() {
 
             <div className="pt-2">
               <Link 
-                href={`/${leadPost.category}/${leadPost.slug}`}
+                href={`/${leadPost.category.toLowerCase()}/${leadPost.slug.toLowerCase()}`}
                 className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-6 py-3 rounded transition shadow-lg uppercase tracking-wider"
               >
                 Read Featured Story →
@@ -100,7 +100,7 @@ export default function Home() {
             {secondaryPosts.map((post) => (
               <Link 
                 key={post.slug}
-                href={`/${post.category}/${post.slug}`}
+                href={`/${post.category.toLowerCase()}/${post.slug.toLowerCase()}`}
                 className="group bg-neutral-950 border border-neutral-800/80 rounded-xl overflow-hidden flex flex-col justify-between hover:border-red-600/50 hover:bg-neutral-900 transition shadow-lg"
               >
                 <div className="relative h-48 w-full bg-neutral-900 overflow-hidden">

@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
               VORTEX<span className="text-red-600">WIRE</span>
             </Link>
 
-            {/* Larger, striking navigation tabs */}
+            {/* Navigation Tabs forced to lowercase paths */}
             <nav className="flex items-center gap-8 text-base md:text-lg font-bold text-neutral-300 uppercase tracking-wide">
               <Link href="/culture" className="hover:text-red-500 transition">Culture</Link>
               <Link href="/tech" className="hover:text-red-500 transition">Tech & Gadgets</Link>
