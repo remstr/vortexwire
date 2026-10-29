@@ -20,12 +20,12 @@ export default function ShareButtons({ title, slug, category }) {
   const pinterestShareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(title)}`;
 
   return (
-    <div className="space-y-3 py-2">
-      <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+    <div className="space-y-3 py-3 w-full">
+      <span className="text-xs font-black uppercase tracking-widest text-neutral-400 block">
         Share This
       </span>
 
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-2.5 flex-nowrap overflow-x-auto pb-1">
         {/* Facebook */}
         <a 
           href={fbShareUrl}
