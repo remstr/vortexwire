@@ -5,7 +5,9 @@ import { useState } from 'react';
 export default function ShareButtons({ title, slug, category }) {
   const [copied, setCopied] = useState(false);
   
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  // Explicitly build the full canonical article URL using category and slug
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://vortexwire.vercel.app';
+  const shareUrl = category && slug ? `${baseUrl}/${category.toLowerCase()}/${slug.toLowerCase()}` : (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl);
