@@ -78,6 +78,38 @@ def parse_ai_output(ai_response_text):
 
     return title, excerpt, content
 
+def extract_image_url(entry, category):
+    """Extracts real image from RSS feed or falls back to category defaults."""
+    # Fallback images per category so they don't all look identical
+    fallbacks = {
+        "culture": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
+        "tech": "https://images.unsplash.com/photo-1518770660439-4636190af475",
+        "automotive": "https://images.unsplash.com/photo-1503376780353-7e6692767b70"
+    }
+    default_img = fallbacks.get(category, "https://images.unsplash.com/photo-1518770660439-4636190af475")
+
+    # Check for media content
+    if "media_content" in entry and entry.media_content:
+        for media in entry.media_content:
+            url = media.get("url")
+            if url:
+                return url
+
+    # Check for media thumbnail
+    if "media_thumbnail" in entry and entry.media_thumbnail:
+        for thumb in entry.media_thumbnail:
+            url = thumb.get("url")
+            if url:
+                return url
+
+    # Check for enclosures
+    if "enclosures" in entry and entry.enclosures:
+        for enc in entry.enclosures:
+            if "image" in enc.get("type", ""):
+                return enc.get("href", default_img)
+
+    return default_img
+
 def process_category(category, feeds, max_articles=2):
     posted_titles = load_posted_titles()
     count = 0
@@ -145,6 +177,7 @@ def process_category(category, feeds, max_articles=2):
                 # Clean strings for safe frontmatter injection
                 safe_title = new_title.replace('"', '\\"')
                 safe_excerpt = new_excerpt.replace('"', '\\"')
+                image_url = extract_image_url(entry, category)
                 
                 # Build MDX Frontmatter file
                 mdx_content = f"""---
@@ -153,7 +186,7 @@ date: "{current_date}"
 author: "VortexWire Editorial Desk"
 category: "{category.capitalize()}"
 excerpt: "{safe_excerpt}"
-featuredImage: "https://images.unsplash.com/photo-1518770660439-4636190af475"
+featuredImage: "{image_url}"
 imageAlt: "{safe_title}"
 ---
 
