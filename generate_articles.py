@@ -1,7 +1,9 @@
 import os
 import re
 import random
+import requests
 import feedparser
+from bs4 import BeautifulSoup
 from datetime import datetime
 from google import genai
 
@@ -27,6 +29,12 @@ RSS_FEEDS = {
         "https://www.autoblog.com/rss.xml",
         "https://www.motor1.com/rss/news/all/"
     ]
+}
+
+FALLBACK_IMAGES = {
+    "culture": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
+    "tech": "https://images.unsplash.com/photo-1518770660439-4636190af475",
+    "automotive": "https://images.unsplash.com/photo-1503376780353-7e6692767b70"
 }
 
 TRACKED_LOG = "posted_articles.txt"
@@ -78,37 +86,39 @@ def parse_ai_output(ai_response_text):
 
     return title, excerpt, content
 
-def extract_image_url(entry, category):
-    """Extracts real image from RSS feed or falls back to category defaults."""
-    # Fallback images per category so they don't all look identical
-    fallbacks = {
-        "culture": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
-        "tech": "https://images.unsplash.com/photo-1518770660439-4636190af475",
-        "automotive": "https://images.unsplash.com/photo-1503376780353-7e6692767b70"
-    }
-    default_img = fallbacks.get(category, "https://images.unsplash.com/photo-1518770660439-4636190af475")
-
-    # Check for media content
-    if "media_content" in entry and entry.media_content:
+def get_publisher_image_and_text(entry, category):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    
+    img_url = None
+    if hasattr(entry, 'media_content') and entry.media_content:
         for media in entry.media_content:
-            url = media.get("url")
-            if url:
-                return url
+            if 'url' in media and media['url'].startswith("http"):
+                img_url = media['url']
+                break
 
-    # Check for media thumbnail
-    if "media_thumbnail" in entry and entry.media_thumbnail:
-        for thumb in entry.media_thumbnail:
-            url = thumb.get("url")
-            if url:
-                return url
+    try:
+        r = requests.get(entry.link, headers=headers, timeout=12)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        
+        if not img_url:
+            og_img = soup.find("meta", {"property": "og:image"})
+            if og_img and og_img.get('content') and og_img.get('content').startswith("http"):
+                img_url = og_img.get('content')
+        
+        paragraphs = soup.find_all('p')
+        full_text = " ".join([p.get_text().strip() for p in paragraphs if len(p.get_text()) > 30])
+        
+        if not img_url:
+            img_url = FALLBACK_IMAGES.get(category, FALLBACK_IMAGES["tech"])
+            
+        if len(full_text) > 100:
+            return img_url, full_text
+    except Exception as e:
+        print(f"    ⚠️ Scraper notice: {e}")
 
-    # Check for enclosures
-    if "enclosures" in entry and entry.enclosures:
-        for enc in entry.enclosures:
-            if "image" in enc.get("type", ""):
-                return enc.get("href", default_img)
-
-    return default_img
+    fallback_text = getattr(entry, 'summary', entry.title)
+    final_img = img_url if img_url else FALLBACK_IMAGES.get(category, FALLBACK_IMAGES["tech"])
+    return final_img, fallback_text
 
 def process_category(category, feeds, max_articles=2):
     posted_titles = load_posted_titles()
@@ -126,12 +136,13 @@ def process_category(category, feeds, max_articles=2):
                 break
                 
             orig_title = entry.get("title", "")
-            summary = entry.get("summary", entry.get("description", ""))
-            
             if not orig_title or orig_title in posted_titles:
                 continue
                 
-            print(f"Rewriting: {orig_title}")
+            print(f"Scraping & Rewriting: {orig_title}")
+            
+            # Fetch the real image and full text body using your web scraper function
+            image_url, raw_text = get_publisher_image_and_text(entry, category)
             
             prompt = f"""
     You are a sharp, witty senior editor for VortexWire, a US-based digital magazine. 
@@ -145,7 +156,7 @@ def process_category(category, feeds, max_articles=2):
     5. No markdown code blocks around your output, just plain text separated by the exact tags below.
 
     Original Title: {orig_title}
-    Source Text: {summary[:3000]}
+    Source Text: {raw_text[:3000]}
     
     OUTPUT FORMAT EXACTLY LIKE THIS:
     ---TITLE---
@@ -163,7 +174,6 @@ def process_category(category, feeds, max_articles=2):
                 if not new_title:
                     new_title = orig_title
 
-                # Generate file path safely
                 slug = slugify(new_title)
                 target_dir = os.path.join("content", category)
                 os.makedirs(target_dir, exist_ok=True)
@@ -174,12 +184,9 @@ def process_category(category, feeds, max_articles=2):
                 
                 current_date = datetime.now().strftime("%Y-%m-%d")
                 
-                # Clean strings for safe frontmatter injection
                 safe_title = new_title.replace('"', '\\"')
                 safe_excerpt = new_excerpt.replace('"', '\\"')
-                image_url = extract_image_url(entry, category)
                 
-                # Build MDX Frontmatter file
                 mdx_content = f"""---
 title: "{safe_title}"
 date: "{current_date}"
