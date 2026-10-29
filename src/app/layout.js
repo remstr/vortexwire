@@ -8,8 +8,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="bg-black text-slate-100">
-      <body className="bg-black min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white">
+    <html lang="en" className="dark bg-black text-slate-100" style={{ colorScheme: 'dark', backgroundColor: '#000000' }}>
+      <head>
+        <meta name="color-scheme" content="dark" />
+      </head>
+      <body className="bg-black text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white" style={{ backgroundColor: '#000000' }}>
         {/* Navigation Header */}
         <header className="sticky top-0 z-50 border-b border-neutral-900 bg-black/95 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-4 py-3 md:py-0 md:h-20 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
