@@ -61,13 +61,15 @@ export default async function ArticlePage({ params }) {
 
       {/* Article Header */}
       <div className="space-y-4 border-b border-neutral-900 pb-6">
-        <div className="flex items-center gap-3 text-xs text-neutral-400">
-          <span className="bg-red-600/10 text-red-500 font-bold px-3 py-1 rounded border border-red-600/20 uppercase tracking-wider">
-            {data.category}
-          </span>
-          <span>{data.date}</span>
-          <span>•</span>
-          <span>By {data.author}</span>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3 text-xs text-neutral-400">
+            <span className="bg-red-600/10 text-red-500 font-bold px-3 py-1 rounded border border-red-600/20 uppercase tracking-wider">
+              {data.category}
+            </span>
+            <span>{data.date}</span>
+            <span>•</span>
+            <span>By {data.author}</span>
+          </div>
         </div>
 
         <h1 className="text-3xl md:text-4xl font-black text-white leading-tight">
@@ -77,6 +79,11 @@ export default async function ArticlePage({ params }) {
         <p className="text-neutral-300 text-lg">
           {data.excerpt}
         </p>
+
+        {/* SOCIAL SHARE BUTTONS MOVED TO THE TOP */}
+        <div className="pt-2">
+          <ShareButtons title={data.title} slug={slug} category={category} />
+        </div>
       </div>
 
       {/* Featured Image Banner */}
@@ -103,9 +110,6 @@ export default async function ArticlePage({ params }) {
           {content}
         </ReactMarkdown>
       </div>
-
-      {/* SOCIAL SHARE BUTTONS RENDERED HERE */}
-      <ShareButtons title={data.title} slug={slug} category={category} />
 
       {/* Footer Return */}
       <div className="pt-4 border-t border-neutral-900 flex justify-between items-center text-sm text-neutral-500">
