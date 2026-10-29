@@ -4,6 +4,13 @@ import { notFound } from "next/navigation";
 
 const VALID_CATEGORIES = ["culture", "tech", "automotive"];
 
+// Tell Next.js exactly which category pages to pre-build during static generation
+export async function generateStaticParams() {
+  return VALID_CATEGORIES.map((category) => ({
+    category: category,
+  }));
+}
+
 export default async function CategoryPage({ params }) {
   const resolvedParams = await params;
   const category = resolvedParams?.category;
