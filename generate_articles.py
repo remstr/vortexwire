@@ -7,13 +7,19 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from google import genai
 
-# --- CONFIGURATION & MULTI-KEY ROTATION ---
+# --- CONFIGURATION & ROTATION ---
 API_KEYS = [
     os.environ.get("GEMINI_API_KEY_1"),
     os.environ.get("GEMINI_API_KEY_2"),
     os.environ.get("GEMINI_API_KEY_3")
 ]
 API_KEYS = [key for key in API_KEYS if key]
+
+MODELS = [
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash'
+]
 
 # RSS Feeds mapped to VortexWire categories
 RSS_FEEDS = {
@@ -54,25 +60,29 @@ def slugify(text):
     text = re.sub(r'[^a-z0-9\s-]', '', text)
     return re.sub(r'[\s_-]+', '-', text).strip('-')
 
-def generate_with_key_rotation(prompt):
+def generate_with_rotation(prompt):
     if not API_KEYS:
         raise ValueError("No Gemini API keys found in environment variables!")
     
-    keys_to_try = API_KEYS.copy()
-    random.shuffle(keys_to_try)
-    
-    for idx, api_key in enumerate(keys_to_try):
-        try:
-            client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-            )
-            return response.text
-        except Exception as e:
-            print(f"Key attempt {idx + 1} failed: {e}. Rotating...")
-            continue
-    raise Exception("All Gemini API keys failed or hit rate limits.")
+    # Try combinations of models and keys
+    for model_name in MODELS:
+        keys_to_try = API_KEYS.copy()
+        random.shuffle(keys_to_try)
+        
+        for api_key in keys_to_try:
+            try:
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                print(f"Model '{model_name}' attempt failed: {e}. Rotating...")
+                continue
+                
+    raise Exception("All Gemini models and API keys failed or hit rate limits.")
 
 def parse_ai_output(ai_response_text):
     """Parses out TITLE, EXCERPT, and CONTENT using the explicit tags."""
@@ -141,7 +151,6 @@ def process_category(category, feeds, max_articles=2):
                 
             print(f"Scraping & Rewriting: {orig_title}")
             
-            # Fetch the real image and full text body using your web scraper function
             image_url, raw_text = get_publisher_image_and_text(entry, category)
             
             prompt = f"""
@@ -168,7 +177,7 @@ def process_category(category, feeds, max_articles=2):
     """
             
             try:
-                raw_response = generate_with_key_rotation(prompt)
+                raw_response = generate_with_rotation(prompt)
                 new_title, new_excerpt, new_content = parse_ai_output(raw_response)
                 
                 if not new_title:
