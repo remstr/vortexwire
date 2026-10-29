@@ -66,6 +66,18 @@ def generate_with_key_rotation(prompt):
             continue
     raise Exception("All Gemini API keys failed or hit rate limits.")
 
+def parse_ai_output(ai_response_text):
+    """Parses out TITLE, EXCERPT, and CONTENT using the explicit tags."""
+    title_match = re.search(r'---TITLE---\s*(.*?)\s*---EXCERPT---', ai_response_text, re.DOTALL)
+    excerpt_match = re.search(r'---EXCERPT---\s*(.*?)\s*---CONTENT---', ai_response_text, re.DOTALL)
+    content_match = re.search(r'---CONTENT---\s*(.*)', ai_response_text, re.DOTALL)
+
+    title = title_match.group(1).strip() if title_match else ""
+    excerpt = excerpt_match.group(1).strip() if excerpt_match else ""
+    content = content_match.group(1).strip() if content_match else ai_response_text
+
+    return title, excerpt, content
+
 def process_category(category, feeds, max_articles=2):
     posted_titles = load_posted_titles()
     count = 0
@@ -81,28 +93,46 @@ def process_category(category, feeds, max_articles=2):
             if count >= max_articles:
                 break
                 
-            title = entry.get("title", "")
+            orig_title = entry.get("title", "")
             summary = entry.get("summary", entry.get("description", ""))
             
-            if not title or title in posted_titles:
+            if not orig_title or orig_title in posted_titles:
                 continue
                 
-            print(f"Rewriting: {title}")
+            print(f"Rewriting: {orig_title}")
             
             prompt = f"""
-            Rewrite the following news item into an engaging, professional digital magazine article for VortexWire.
-            Keep it objective, sharp, and styled for a modern US news feed reader.
-            Provide output in clean Markdown format with subheadings. Do not include frontmatter in your AI output response.
-            
-            Original Title: {title}
-            Original Summary: {summary}
-            """
+    You are a sharp, witty senior editor for VortexWire, a US-based digital magazine. 
+    Rewrite the following article into a punchy, engaging US news brief (strictly 200 to 250 words).
+    
+    VOICE & EDITORIAL RULES:
+    1. NO CLICHÉS: NEVER start articles with cheesy robotic openers like "Hold onto your helmets," "Buckle up," "Picture this," or "In today's fast-paced world." Dive straight into the story with punchy, natural human phrasing.
+    2. WRITE LIKE A HUMAN: Avoid stiff, formal AI filler phrases. Talk to the reader like a pop-culture-savvy friend with dry wit or light humor when appropriate.
+    3. SHORT & SCANNABLE: Keep paragraphs to 2 sentences max. Use bullet points (-) for quick takeaways.
+    4. NO METADATA LEAKS: Under ---CONTENT---, write ONLY the article body text. Never repeat labels like title, slug, or category.
+    5. No markdown code blocks around your output, just plain text separated by the exact tags below.
+
+    Original Title: {orig_title}
+    Source Text: {summary[:3000]}
+    
+    OUTPUT FORMAT EXACTLY LIKE THIS:
+    ---TITLE---
+    [Engaging, witty SEO Title here]
+    ---EXCERPT---
+    [1-sentence witty meta summary here]
+    ---CONTENT---
+    [Humorous, punchy markdown article body text here, approx 200-250 words]
+    """
             
             try:
-                rewritten_content = generate_with_key_rotation(prompt)
+                raw_response = generate_with_key_rotation(prompt)
+                new_title, new_excerpt, new_content = parse_ai_output(raw_response)
                 
-                # Generate metadata fields safely outside f-strings
-                slug = slugify(title)
+                if not new_title:
+                    new_title = orig_title
+
+                # Generate file path safely
+                slug = slugify(new_title)
                 target_dir = os.path.join("content", category)
                 os.makedirs(target_dir, exist_ok=True)
                 file_path = os.path.join(target_dir, f"{slug}.mdx")
@@ -112,12 +142,11 @@ def process_category(category, feeds, max_articles=2):
                 
                 current_date = datetime.now().strftime("%Y-%m-%d")
                 
-                # Clean strings prior to f-string template
-                safe_title = title.replace('"', '\\"')
-                raw_excerpt = (summary[:150] + '...') if len(summary) > 150 else summary
-                safe_excerpt = raw_excerpt.replace('"', '\\"')
+                # Clean strings for safe frontmatter injection
+                safe_title = new_title.replace('"', '\\"')
+                safe_excerpt = new_excerpt.replace('"', '\\"')
                 
-                # Build MDX Frontmatter file safely
+                # Build MDX Frontmatter file
                 mdx_content = f"""---
 title: "{safe_title}"
 date: "{current_date}"
@@ -128,18 +157,18 @@ featuredImage: "https://images.unsplash.com/photo-1518770660439-4636190af475"
 imageAlt: "{safe_title}"
 ---
 
-{rewritten_content}
+{new_content}
 """
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(mdx_content)
                 
-                save_posted_title(title)
-                posted_titles.add(title)
+                save_posted_title(orig_title)
+                posted_titles.add(orig_title)
                 count += 1
                 print(f"Saved: {file_path}")
                 
             except Exception as e:
-                print(f"Failed to process article '{title}': {e}")
+                print(f"Failed to process article '{orig_title}': {e}")
                 continue
 
 if __name__ == "__main__":
