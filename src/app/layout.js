@@ -12,15 +12,15 @@ export default function RootLayout({ children }) {
       <body className="bg-black min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white">
         {/* Navigation Header */}
         <header className="sticky top-0 z-50 border-b border-neutral-900 bg-black/95 backdrop-blur-md">
-          <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-            {/* Larger, bolder brand title */}
-            <Link href="/" className="text-2xl md:text-3xl font-black tracking-wider text-white uppercase flex items-center gap-3">
-              <span className="w-4 h-4 bg-red-600 rounded-sm inline-block animate-pulse"></span>
+          <div className="max-w-6xl mx-auto px-4 py-3 md:py-0 md:h-20 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+            {/* Logo */}
+            <Link href="/" className="text-xl md:text-3xl font-black tracking-wider text-white uppercase flex items-center gap-2 md:gap-3">
+              <span className="w-3.5 h-3.5 bg-red-600 rounded-sm inline-block animate-pulse"></span>
               VORTEX<span className="text-red-600">WIRE</span>
             </Link>
 
-            {/* Navigation Tabs forced to lowercase paths */}
-            <nav className="flex items-center gap-8 text-base md:text-lg font-bold text-neutral-300 uppercase tracking-wide">
+            {/* Navigation Tabs */}
+            <nav className="flex items-center gap-5 md:gap-8 text-xs md:text-lg font-bold text-neutral-300 uppercase tracking-wide">
               <Link href="/culture" className="hover:text-red-500 transition">Culture</Link>
               <Link href="/tech" className="hover:text-red-500 transition">Tech & Gadgets</Link>
               <Link href="/automotive" className="hover:text-red-500 transition">Automotive</Link>

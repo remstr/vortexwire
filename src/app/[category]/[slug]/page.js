@@ -4,6 +4,7 @@ import matter from 'gray-matter';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import ShareButtons from '@/components/ShareButtons';
 
 const contentDirectory = function() {
   return path.join(process.cwd(), 'content');
