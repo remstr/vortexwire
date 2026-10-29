@@ -101,7 +101,7 @@ def process_category(category, feeds, max_articles=2):
             try:
                 rewritten_content = generate_with_key_rotation(prompt)
                 
-                # Generate metadata fields
+                # Generate metadata fields safely outside f-strings
                 slug = slugify(title)
                 target_dir = os.path.join("content", category)
                 os.makedirs(target_dir, exist_ok=True)
@@ -111,18 +111,21 @@ def process_category(category, feeds, max_articles=2):
                     continue
                 
                 current_date = datetime.now().strftime("%Y-%m-%d")
-                excerpt = (summary[:150] + '...') if len(summary) > 150 else summary
-                excerpt = excerpt.replace('"', '\\"')
                 
-                # Build MDX Frontmatter file
+                # Clean strings prior to f-string template
+                safe_title = title.replace('"', '\\"')
+                raw_excerpt = (summary[:150] + '...') if len(summary) > 150 else summary
+                safe_excerpt = raw_excerpt.replace('"', '\\"')
+                
+                # Build MDX Frontmatter file safely
                 mdx_content = f"""---
-title: "{title.replace('"', '\\"')}"
+title: "{safe_title}"
 date: "{current_date}"
 author: "VortexWire Editorial Desk"
 category: "{category.capitalize()}"
-excerpt: "{excerpt}"
+excerpt: "{safe_excerpt}"
 featuredImage: "https://images.unsplash.com/photo-1518770660439-4636190af475"
-imageAlt: "{title.replace('"', '\\"')}"
+imageAlt: "{safe_title}"
 ---
 
 {rewritten_content}
