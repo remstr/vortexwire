@@ -21,8 +21,8 @@ export async function generateStaticParams() {
       filenames.forEach((filename) => {
         if (filename.endsWith('.mdx')) {
           paths.push({
-            category: category,
-            slug: filename.replace(/\.mdx$/, ''),
+            category: category.toLowerCase(),
+            slug: filename.replace(/\.mdx$/, '').toLowerCase(),
           });
         }
       });
@@ -38,8 +38,8 @@ export async function generateStaticParams() {
 
 export default async function ArticlePage({ params }) {
   const resolvedParams = await params;
-  const category = resolvedParams?.category;
-  const slug = resolvedParams?.slug;
+  const category = resolvedParams?.category?.toLowerCase();
+  const slug = resolvedParams?.slug?.toLowerCase();
   
   const filePath = path.join(contentDirectory(), category, `${slug}.mdx`);
 
@@ -52,9 +52,9 @@ export default async function ArticlePage({ params }) {
 
   return (
     <article className="max-w-3xl mx-auto space-y-8 py-6 px-4">
-      {/* Back button (Fixed with lowercase route & red theme) */}
+      {/* Back button */}
       <div>
-        <Link href={`/${category.toLowerCase()}`} className="text-sm text-red-500 hover:text-red-400 font-bold inline-flex items-center gap-1">
+        <Link href={`/${category}`} className="text-sm text-red-500 hover:text-red-400 font-bold inline-flex items-center gap-1">
           ← Back to {category.charAt(0).toUpperCase() + category.slice(1)}
         </Link>
       </div>
@@ -104,8 +104,11 @@ export default async function ArticlePage({ params }) {
         </ReactMarkdown>
       </div>
 
-      {/* Footer Share / Back */}
-      <div className="pt-8 border-t border-neutral-900 flex justify-between items-center text-sm text-neutral-500">
+      {/* SOCIAL SHARE BUTTONS RENDERED HERE */}
+      <ShareButtons title={data.title} slug={slug} category={category} />
+
+      {/* Footer Return */}
+      <div className="pt-4 border-t border-neutral-900 flex justify-between items-center text-sm text-neutral-500">
         <span>Published on VortexWire Digital Desk</span>
         <Link href="/" className="text-red-500 hover:underline">
           Return Home
