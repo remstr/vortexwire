@@ -1,0 +1,15 @@
+<script src="https://giscus.app/client.js"
+        data-repo="remstr/vortexwire"
+        data-repo-id="R_kgDOVbRNNg"
+        data-category="Q&A"
+        data-category-id="DIC_kwDOVbRNNs4DJ-Ki"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="dark"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
