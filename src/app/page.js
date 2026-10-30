@@ -54,8 +54,11 @@ export default function Home() {
     }
   });
 
-  // Remaining posts for the rest of the feed
-  const secondaryPosts = remainingPosts.filter(p => !usedSlugs.has(p.slug));
+  // Collect the rest of the posts available for the secondary grid
+  const availableSecondary = remainingPosts.filter(p => !usedSlugs.has(p.slug));
+  
+  // Limit the initial display to 6 posts so the homepage isn't crammed
+  const displayedSecondary = availableSecondary.slice(0, 6);
 
   return (
     <div className="space-y-12 pb-12">
@@ -123,10 +126,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* Remaining Posts */}
-        {secondaryPosts.length > 0 && (
+        {/* Secondary Posts (Limited to 6 to prevent cramping) */}
+        {displayedSecondary.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-            {secondaryPosts.map((post) => (
+            {displayedSecondary.map((post) => (
               <PostCard key={post.slug} post={post} />
             ))}
           </div>
