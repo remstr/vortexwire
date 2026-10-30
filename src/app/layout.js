@@ -1,4 +1,8 @@
 import Link from 'next/link';
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import SearchModal from '@/components/SearchModal';
 import './globals.css';
 
 export const metadata = {
@@ -6,7 +10,39 @@ export const metadata = {
   description: 'Automated digital magazine covering Culture, Tech, and Automotive sectors.',
 };
 
+// Server-side function to grab all articles for instant search mapping
+function getAllPostsForSearch() {
+  const contentDirectory = path.join(process.cwd(), 'content');
+  const categories = ['culture', 'tech', 'automotive'];
+  let allPosts = [];
+
+  categories.forEach((category) => {
+    const catDir = path.join(contentDirectory, category);
+    if (fs.existsSync(catDir)) {
+      const filenames = fs.readdirSync(catDir);
+      filenames.forEach((filename) => {
+        if (filename.endsWith('.mdx')) {
+          const filePath = path.join(catDir, filename);
+          const fileContents = fs.readFileSync(filePath, 'utf8');
+          const { data } = matter(fileContents);
+          allPosts.push({
+            slug: filename.replace(/\.mdx$/, '').toLowerCase(),
+            category: category.toLowerCase(),
+            title: data.title || 'Untitled',
+            excerpt: data.excerpt || '',
+            date: data.date || '',
+          });
+        }
+      });
+    }
+  });
+
+  return allPosts;
+}
+
 export default function RootLayout({ children }) {
+  const posts = getAllPostsForSearch();
+
   return (
     <html lang="en" className="dark bg-black text-slate-100" style={{ colorScheme: 'dark', backgroundColor: '#000000' }}>
       <head>
@@ -22,12 +58,17 @@ export default function RootLayout({ children }) {
               VORTEX<span className="text-red-600">WIRE</span>
             </Link>
 
-            {/* Navigation Tabs */}
-            <nav className="flex items-center gap-5 md:gap-8 text-xs md:text-lg font-bold text-neutral-300 uppercase tracking-wide">
-              <Link href="/culture" className="hover:text-red-500 transition">Culture</Link>
-              <Link href="/tech" className="hover:text-red-500 transition">Tech & Gadgets</Link>
-              <Link href="/automotive" className="hover:text-red-500 transition">Automotive</Link>
-            </nav>
+            {/* Navigation Tabs & Search Trigger */}
+            <div className="flex items-center gap-6 md:gap-8 flex-wrap justify-center">
+              <nav className="flex items-center gap-5 md:gap-8 text-xs md:text-lg font-bold text-neutral-300 uppercase tracking-wide">
+                <Link href="/culture" className="hover:text-red-500 transition">Culture</Link>
+                <Link href="/tech" className="hover:text-red-500 transition">Tech & Gadgets</Link>
+                <Link href="/automotive" className="hover:text-red-500 transition">Automotive</Link>
+              </nav>
+
+              {/* Instant Search Bar Trigger Component */}
+              <SearchModal posts={posts} />
+            </div>
           </div>
         </header>
 
