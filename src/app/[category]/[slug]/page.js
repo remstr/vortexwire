@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import ShareButtons from '@/components/ShareButtons';
+import Comments from '@/components/Comments'; // 1. Import the Comments component
 
 const contentDirectory = function() {
   return path.join(process.cwd(), 'content');
@@ -80,7 +81,7 @@ export default async function ArticlePage({ params }) {
           {data.excerpt}
         </p>
 
-        {/* SOCIAL SHARE BUTTONS MOVED TO THE TOP */}
+        {/* SOCIAL SHARE BUTTONS */}
         <div className="pt-2">
           <ShareButtons title={data.title} slug={slug} category={category} />
         </div>
@@ -110,6 +111,9 @@ export default async function ArticlePage({ params }) {
           {content}
         </ReactMarkdown>
       </div>
+
+      {/* 2. COMMENT SECTION PLACED HERE */}
+      <Comments />
 
       {/* Footer Return */}
       <div className="pt-4 border-t border-neutral-900 flex justify-between items-center text-sm text-neutral-500">
