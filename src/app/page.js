@@ -41,23 +41,17 @@ export default function Home() {
   const leadPost = allPosts.length > 0 ? allPosts[0] : null;
   const remainingPosts = allPosts.slice(1);
 
-  // Guarantee 1 Culture, 1 Tech, 1 Automotive for the first row
-  const categories = ['culture', 'tech', 'automotive'];
-  const firstRowPosts = [];
-  const usedSlugs = new Set(leadPost ? [leadPost.slug] : []);
+  // Guarantee strictly 1 Culture, 1 Tech, 1 Automotive for the first row
+  const culturePost = remainingPosts.find(p => p.category === 'culture' && p.slug !== leadPost?.slug);
+  const techPost = remainingPosts.find(p => p.category === 'tech' && p.slug !== leadPost?.slug);
+  const autoPost = remainingPosts.find(p => p.category === 'automotive' && p.slug !== leadPost?.slug);
 
-  categories.forEach((cat) => {
-    const match = remainingPosts.find(p => p.category === cat && !usedSlugs.has(p.slug));
-    if (match) {
-      firstRowPosts.push(match);
-      usedSlugs.add(match.slug);
-    }
-  });
+  const firstRowPosts = [culturePost, techPost, autoPost].filter(Boolean);
+  const firstRowSlugs = new Set(firstRowPosts.map(p => p.slug));
+  if (leadPost) firstRowSlugs.add(leadPost.slug);
 
-  // Collect the rest of the posts available for the secondary grid
-  const availableSecondary = remainingPosts.filter(p => !usedSlugs.has(p.slug));
-  
-  // Limit the initial display to 6 posts so the homepage isn't crammed
+  // Secondary posts are everything else left over, limited to 6
+  const availableSecondary = remainingPosts.filter(p => !firstRowSlugs.has(p.slug));
   const displayedSecondary = availableSecondary.slice(0, 6);
 
   return (
@@ -105,7 +99,11 @@ export default function Home() {
             </div>
           </div>
         </section>
-      ) : null}
+      ) : (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-12 text-center text-neutral-400">
+          No articles published yet. Run your Python publisher script to populate VortexWire!
+        </div>
+      )}
 
       {/* LATEST WIRE FEEDS */}
       <section className="space-y-6">
@@ -117,7 +115,7 @@ export default function Home() {
           <span className="text-xs text-neutral-400 uppercase tracking-widest font-bold">Culture • Tech • Automotive</span>
         </div>
 
-        {/* First Row: 1 Culture, 1 Tech, 1 Automotive */}
+        {/* First Row: Guaranteed 1 Culture, 1 Tech, 1 Automotive */}
         {firstRowPosts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {firstRowPosts.map((post) => (
@@ -126,7 +124,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Secondary Posts (Limited to 6 to prevent cramping) */}
+        {/* Secondary Posts (Limited to 6) */}
         {displayedSecondary.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
             {displayedSecondary.map((post) => (
