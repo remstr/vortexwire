@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import SearchModal from '@/components/SearchModal';
+import { Analytics } from '@vercel/analytics/next'; // 1. Import it here
 import './globals.css';
 
 export const metadata = {
@@ -10,7 +11,6 @@ export const metadata = {
   description: 'Automated digital magazine covering Culture, Tech, and Automotive sectors.',
 };
 
-// Server-side function to grab all articles for instant search mapping
 function getAllPostsForSearch() {
   const contentDirectory = path.join(process.cwd(), 'content');
   const categories = ['culture', 'tech', 'automotive'];
@@ -66,7 +66,6 @@ export default function RootLayout({ children }) {
                 <Link href="/automotive" className="hover:text-red-500 transition">Automotive</Link>
               </nav>
 
-              {/* Instant Search Bar Trigger Component */}
               <SearchModal posts={posts} />
             </div>
           </div>
@@ -86,6 +85,9 @@ export default function RootLayout({ children }) {
           </div>
           <p>© 2026 VortexWire. All rights reserved. Striking journalism for the US feed.</p>
         </footer>
+
+        {/* 2. Place the Analytics component right here */}
+        <Analytics />
       </body>
     </html>
   );
