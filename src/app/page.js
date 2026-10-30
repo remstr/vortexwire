@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import Link from 'next/link';
+import LoadMoreFeed from '@/components/LoadMoreFeed';
 
 function getAllPosts() {
   const categories = ['culture', 'tech', 'automotive'];
@@ -22,7 +23,7 @@ function getAllPosts() {
             slug: filename.replace(/\.mdx$/, '').toLowerCase(),
             birthtime: stats.birthtimeMs || stats.mtimeMs,
             ...data,
-            category: category.toLowerCase(), // Force folder category to take priority over frontmatter
+            category: category.toLowerCase(),
           });
         }
       });
@@ -53,7 +54,7 @@ export default function Home() {
     }
   });
 
-  // Fallback: If any category was missing, fill the first row up to 3 items using any unique remaining post
+  // Fallback if any category was missing
   remainingPosts.forEach((p) => {
     if (firstRowPosts.length < 3 && !usedSlugs.has(p.slug)) {
       firstRowPosts.push(p);
@@ -61,9 +62,8 @@ export default function Home() {
     }
   });
 
-  // Secondary posts are everything else left over, limited to 6
-  const availableSecondary = remainingPosts.filter(p => !usedSlugs.has(p.slug));
-  const displayedSecondary = availableSecondary.slice(0, 6);
+  // All remaining posts passed to the Load More component pool
+  const subsequentPosts = remainingPosts.filter(p => !usedSlugs.has(p.slug));
 
   return (
     <div className="space-y-12 pb-12">
@@ -135,13 +135,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Secondary Posts (Limited to 6) */}
-        {displayedSecondary.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-            {displayedSecondary.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
+        {/* Subsequent Posts with Load More Functionality */}
+        {subsequentPosts.length > 0 && (
+          <LoadMoreFeed subsequentPosts={subsequentPosts} />
         )}
       </section>
     </div>
