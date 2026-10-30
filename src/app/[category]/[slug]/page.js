@@ -79,9 +79,10 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// Helper to get up to 3 related articles from the same category
+// Helper to get up to 3 related articles from the same category (forced lowercase)
 function getRelatedPosts(currentCategory, currentSlug) {
-  const catDir = path.join(contentDirectory(), currentCategory);
+  const safeCategory = currentCategory.toLowerCase();
+  const catDir = path.join(contentDirectory(), safeCategory);
   if (!fs.existsSync(catDir)) return [];
 
   const filenames = fs.readdirSync(catDir);
@@ -93,7 +94,7 @@ function getRelatedPosts(currentCategory, currentSlug) {
       const { data } = matter(fileContents);
       return {
         slug: filename.replace(/\.mdx$/, '').toLowerCase(),
-        category: currentCategory,
+        category: safeCategory,
         ...data,
       };
     })
@@ -196,7 +197,7 @@ export default async function ArticlePage({ params }) {
             {relatedPosts.map((post) => (
               <Link 
                 key={post.slug}
-                href={`/${post.category}/${post.slug}`}
+                href={`/${post.category.toLowerCase()}/${post.slug}`}
                 className="group bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 flex flex-col justify-between hover:border-red-600/50 transition shadow-lg"
               >
                 <div className="space-y-2">
