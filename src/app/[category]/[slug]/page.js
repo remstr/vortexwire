@@ -37,6 +37,48 @@ export async function generateStaticParams() {
   return paths;
 }
 
+// Dynamic Open Graph & Twitter metadata generation for social sharing
+export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const category = resolvedParams?.category?.toLowerCase();
+  const slug = resolvedParams?.slug?.toLowerCase();
+  
+  const filePath = path.join(contentDirectory(), category, `${slug}.mdx`);
+  if (!fs.existsSync(filePath)) {
+    return { title: 'Not Found — VortexWire' };
+  }
+
+  const fileContents = fs.readFileSync(filePath, 'utf8');
+  const { data } = matter(fileContents);
+
+  return {
+    title: `${data.title} — VortexWire`,
+    description: data.excerpt,
+    openGraph: {
+      title: data.title,
+      description: data.excerpt,
+      url: `https://www.vortexwire.fyi/${category}/${slug}`,
+      siteName: 'VortexWire',
+      images: [
+        {
+          url: data.featuredImage || 'https://www.vortexwire.fyi/default-og.jpg',
+          width: 1200,
+          height: 630,
+          alt: data.title,
+        },
+      ],
+      locale: 'en_US',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: data.title,
+      description: data.excerpt,
+      images: [data.featuredImage],
+    },
+  };
+}
+
 // Helper to get up to 3 related articles from the same category
 function getRelatedPosts(currentCategory, currentSlug) {
   const catDir = path.join(contentDirectory(), currentCategory);
