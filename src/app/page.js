@@ -15,10 +15,13 @@ function getAllPosts() {
         if (filename.endsWith('.mdx')) {
           const filePath = path.join(catDir, filename);
           const fileContents = fs.readFileSync(filePath, 'utf8');
+          const stats = fs.statSync(filePath); // Get file creation/modification stats
           const { data } = matter(fileContents);
+          
           allPosts.push({
             slug: filename.replace(/\.mdx$/, '').toLowerCase(),
             category: category.toLowerCase(),
+            birthtime: stats.birthtimeMs || stats.mtimeMs, // Track exact file timestamp
             ...data,
           });
         }
@@ -26,7 +29,12 @@ function getAllPosts() {
     }
   });
 
-  return allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Sort primarily by date descending, and fallback to exact file creation time if dates match
+  return allPosts.sort((a, b) => {
+    const dateComparison = new Date(b.date) - new Date(a.date);
+    if (dateComparison !== 0) return dateComparison;
+    return b.birthtime - a.birthtime;
+  });
 }
 
 export default function Home() {
