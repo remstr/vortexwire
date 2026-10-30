@@ -20,9 +20,9 @@ function getAllPosts() {
           
           allPosts.push({
             slug: filename.replace(/\.mdx$/, '').toLowerCase(),
-            category: category.toLowerCase(),
             birthtime: stats.birthtimeMs || stats.mtimeMs,
             ...data,
+            category: category.toLowerCase(), // Force folder category to take priority over frontmatter
           });
         }
       });
@@ -41,17 +41,28 @@ export default function Home() {
   const leadPost = allPosts.length > 0 ? allPosts[0] : null;
   const remainingPosts = allPosts.slice(1);
 
-  // Guarantee strictly 1 Culture, 1 Tech, 1 Automotive for the first row
-  const culturePost = remainingPosts.find(p => p.category === 'culture' && p.slug !== leadPost?.slug);
-  const techPost = remainingPosts.find(p => p.category === 'tech' && p.slug !== leadPost?.slug);
-  const autoPost = remainingPosts.find(p => p.category === 'automotive' && p.slug !== leadPost?.slug);
+  const firstRowPosts = [];
+  const usedSlugs = new Set(leadPost ? [leadPost.slug] : []);
 
-  const firstRowPosts = [culturePost, techPost, autoPost].filter(Boolean);
-  const firstRowSlugs = new Set(firstRowPosts.map(p => p.slug));
-  if (leadPost) firstRowSlugs.add(leadPost.slug);
+  // Guarantee strictly 1 Culture, 1 Tech, 1 Automotive for the first row
+  ['culture', 'tech', 'automotive'].forEach((cat) => {
+    const match = remainingPosts.find(p => p.category === cat && !usedSlugs.has(p.slug));
+    if (match) {
+      firstRowPosts.push(match);
+      usedSlugs.add(match.slug);
+    }
+  });
+
+  // Fallback: If any category was missing, fill the first row up to 3 items using any unique remaining post
+  remainingPosts.forEach((p) => {
+    if (firstRowPosts.length < 3 && !usedSlugs.has(p.slug)) {
+      firstRowPosts.push(p);
+      usedSlugs.add(p.slug);
+    }
+  });
 
   // Secondary posts are everything else left over, limited to 6
-  const availableSecondary = remainingPosts.filter(p => !firstRowSlugs.has(p.slug));
+  const availableSecondary = remainingPosts.filter(p => !usedSlugs.has(p.slug));
   const displayedSecondary = availableSecondary.slice(0, 6);
 
   return (
