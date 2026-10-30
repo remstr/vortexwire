@@ -37,7 +37,12 @@ export default function RootLayout({ children }) {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-neutral-900 bg-black py-8 text-center text-xs text-neutral-500 uppercase tracking-wider">
+        <footer className="border-t border-neutral-900 bg-black py-10 text-center text-xs text-neutral-500 uppercase tracking-wider space-y-4">
+          <div className="flex justify-center flex-wrap gap-6 font-bold text-neutral-400">
+            <Link href="/about" className="hover:text-red-500 transition">About Us</Link>
+            <Link href="/contact" className="hover:text-red-500 transition">Contact Us</Link>
+            <Link href="/disclaimer" className="hover:text-red-500 transition">Privacy Policy</Link>
+          </div>
           <p>© 2026 VortexWire. All rights reserved. Striking journalism for the US feed.</p>
         </footer>
       </body>
