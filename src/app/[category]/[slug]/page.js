@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import ShareButtons from '@/components/ShareButtons';
-import Comments from '@/components/Comments'; // 1. Import the Comments component
+import Comments from '@/components/Comments';
 
 const contentDirectory = function() {
   return path.join(process.cwd(), 'content');
@@ -37,6 +37,29 @@ export async function generateStaticParams() {
   return paths;
 }
 
+// Helper to get up to 3 related articles from the same category
+function getRelatedPosts(currentCategory, currentSlug) {
+  const catDir = path.join(contentDirectory(), currentCategory);
+  if (!fs.existsSync(catDir)) return [];
+
+  const filenames = fs.readdirSync(catDir);
+  const posts = filenames
+    .filter((fn) => fn.endsWith('.mdx'))
+    .map((filename) => {
+      const filePath = path.join(catDir, filename);
+      const fileContents = fs.readFileSync(filePath, 'utf8');
+      const { data } = matter(fileContents);
+      return {
+        slug: filename.replace(/\.mdx$/, '').toLowerCase(),
+        category: currentCategory,
+        ...data,
+      };
+    })
+    .filter((p) => p.slug !== currentSlug);
+
+  return posts.slice(0, 3);
+}
+
 export default async function ArticlePage({ params }) {
   const resolvedParams = await params;
   const category = resolvedParams?.category?.toLowerCase();
@@ -50,6 +73,13 @@ export default async function ArticlePage({ params }) {
 
   const fileContents = fs.readFileSync(filePath, 'utf8');
   const { data, content } = matter(fileContents);
+
+  // Calculate reading time (avg 200 words per minute)
+  const wordCount = content.split(/\s+/g).length;
+  const readingTime = Math.ceil(wordCount / 200);
+
+  // Fetch related posts for the bottom section
+  const relatedPosts = getRelatedPosts(category, slug);
 
   return (
     <article className="max-w-3xl mx-auto space-y-8 py-6 px-4">
@@ -68,6 +98,8 @@ export default async function ArticlePage({ params }) {
               {data.category}
             </span>
             <span>{data.date}</span>
+            <span>•</span>
+            <span>{readingTime} min read</span>
             <span>•</span>
             <span>By {data.author}</span>
           </div>
@@ -112,7 +144,33 @@ export default async function ArticlePage({ params }) {
         </ReactMarkdown>
       </div>
 
-      {/* 2. COMMENT SECTION PLACED HERE */}
+      {/* RELATED STORIES SECTION */}
+      {relatedPosts.length > 0 && (
+        <section className="space-y-6 pt-8 border-t border-neutral-900">
+          <h3 className="text-xl font-black text-white uppercase tracking-tight">
+            Related in {category.charAt(0).toUpperCase() + category.slice(1)}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {relatedPosts.map((post) => (
+              <Link 
+                key={post.slug}
+                href={`/${post.category}/${post.slug}`}
+                className="group bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 flex flex-col justify-between hover:border-red-600/50 transition shadow-lg"
+              >
+                <div className="space-y-2">
+                  <span className="text-[10px] text-neutral-500">{post.date}</span>
+                  <h4 className="text-sm font-bold text-white group-hover:text-red-500 transition line-clamp-2">
+                    {post.title}
+                  </h4>
+                </div>
+                <span className="text-xs font-bold text-red-500 pt-4">Read →</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* COMMENT SECTION */}
       <Comments />
 
       {/* Footer Return */}
