@@ -2,8 +2,9 @@ import Link from 'next/link';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import Script from 'next/script';
 import SearchModal from '@/components/SearchModal';
-import { Analytics } from '@vercel/analytics/next'; // 1. Import it here
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata = {
@@ -47,6 +48,12 @@ export default function RootLayout({ children }) {
     <html lang="en" className="dark bg-black text-slate-100" style={{ colorScheme: 'dark', backgroundColor: '#000000' }}>
       <head>
         <meta name="color-scheme" content="dark" />
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9961171750485403"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </head>
       <body className="bg-black text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white" style={{ backgroundColor: '#000000' }}>
         {/* Navigation Header */}
@@ -86,7 +93,7 @@ export default function RootLayout({ children }) {
           <p>© 2026 VortexWire. All rights reserved. Striking journalism for the US feed.</p>
         </footer>
 
-        {/* 2. Place the Analytics component right here */}
+        {/* Analytics */}
         <Analytics />
       </body>
     </html>
