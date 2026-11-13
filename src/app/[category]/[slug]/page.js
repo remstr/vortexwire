@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import ShareButtons from '@/components/ShareButtons';
 import Comments from '@/components/Comments';
 import AdsterraNativeBanner from '@/components/AdsterraNativeBanner';
+import AdsterraArticleBanner from '@/components/AdsterraArticleBanner';
 
 const contentDirectory = function() {
   return path.join(process.cwd(), 'content');
@@ -38,7 +39,6 @@ export async function generateStaticParams() {
   return paths;
 }
 
-// Dynamic Open Graph & Twitter metadata generation for social sharing
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const category = resolvedParams?.category?.toLowerCase();
@@ -80,7 +80,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// Helper to get up to 3 related articles from the same category (forced lowercase)
 function getRelatedPosts(currentCategory, currentSlug) {
   const safeCategory = currentCategory.toLowerCase();
   const catDir = path.join(contentDirectory(), safeCategory);
@@ -118,11 +117,9 @@ export default async function ArticlePage({ params }) {
   const fileContents = fs.readFileSync(filePath, 'utf8');
   const { data, content } = matter(fileContents);
 
-  // Calculate reading time (avg 200 words per minute)
   const wordCount = content.split(/\s+/g).length;
   const readingTime = Math.ceil(wordCount / 200);
 
-  // Fetch related posts for the bottom section
   const relatedPosts = getRelatedPosts(category, slug);
 
   return (
@@ -173,6 +170,9 @@ export default async function ArticlePage({ params }) {
           />
         </div>
       )}
+
+      {/* MID-ARTICLE 300x250 BANNER */}
+      <AdsterraArticleBanner />
 
       {/* Article Body Content Rendered with ReactMarkdown */}
       <div className="text-neutral-300 space-y-6 leading-relaxed text-base md:text-lg">
