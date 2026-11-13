@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import ShareButtons from '@/components/ShareButtons';
 import Comments from '@/components/Comments';
+import AdsterraNativeBanner from '@/components/AdsterraNativeBanner';
 
 const contentDirectory = function() {
   return path.join(process.cwd(), 'content');
@@ -186,6 +187,9 @@ export default async function ArticlePage({ params }) {
           {content}
         </ReactMarkdown>
       </div>
+
+      {/* ADSTERRA NATIVE BANNER (4:1 GRID) */}
+      <AdsterraNativeBanner />
 
       {/* RELATED STORIES SECTION */}
       {relatedPosts.length > 0 && (
