@@ -48,12 +48,6 @@ export default function RootLayout({ children }) {
     <html lang="en" className="dark bg-black text-slate-100" style={{ colorScheme: 'dark', backgroundColor: '#000000' }}>
       <head>
         <meta name="color-scheme" content="dark" />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9961171750485403"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </head>
       <body className="bg-black text-slate-100 min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white" style={{ backgroundColor: '#000000' }}>
         {/* Navigation Header */}
@@ -95,6 +89,14 @@ export default function RootLayout({ children }) {
 
         {/* Analytics */}
         <Analytics />
+
+        {/* Adsterra Social Bar */}
+        <Script
+          id="vortexwire-social-bar"
+          src="https://bicea.org/14/9614b32944225be61866ac7391822b69"
+          data-cfasync="false"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
