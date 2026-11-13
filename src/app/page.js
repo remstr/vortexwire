@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import Link from 'next/link';
 import LoadMoreFeed from '@/components/LoadMoreFeed';
+import AdsterraHomeBanner from '@/components/AdsterraHomeBanner';
 
 function getAllPosts() {
   const categories = ['culture', 'tech', 'automotive'];
@@ -115,6 +116,9 @@ export default function Home() {
           No articles published yet. Run your Python publisher script to populate VortexWire!
         </div>
       )}
+
+      {/* ADSTERRA HOMEPAGE BANNER (320x50) */}
+      <AdsterraHomeBanner />
 
       {/* LATEST WIRE FEEDS */}
       <section className="space-y-6">
